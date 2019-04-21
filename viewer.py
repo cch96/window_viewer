@@ -2,8 +2,10 @@
 import traceback
 import time
 import bitarray
+import io
 
 
+import pyautogui
 import pyperclip
 import win32clipboard
 import win32api
@@ -119,16 +121,27 @@ def foo(hwnd, mouse):
 
 if __name__ == '__main__':
     viewer = Viewer('test')
-    t1 = time.time() # 0.8s平均
     view = viewer.shot_screen()
-    a = bitarray.bitarray(endian='little')
-    a.frombytes(view.get_img_bits(1))
-    view = viewer.shot_screen()
-    b = bitarray.bitarray(endian='little')
-    b.frombytes(view.get_img_bits(1))
-    print(time.time()-t1)
-    print((a ^ b).count())
-    print(time.time()-t1)
-    # b = np.asarray(view.get_img_bits(0), np.uint8)
+    # a = bitarray.bitarray(endian='little')
+    # a.frombytes(view.get_img_bits(1))
+    # time.sleep(1)
+    # t1 = time.time() # 0.6s
+    # view = viewer.shot_screen()
+    # b = bitarray.bitarray(endian='little')
+    b_byte = view.get_img_bits(1)
+    # b.frombytes(b_byte)
+    # result = (a ^ b)
+    # print(result.count(0)/len(result))
+    # print(time.time()-t1)
+    image = pyautogui.screenshot()
+    print(image.tobytes())
+    image = cv2.cvtColor(np.array(image), cv2.COLOR_RGB2BGR)
+    print(image)
+    cv2.imwrite("in_memory_to_disk.png", image)
+    # nparr = np.frombuffer(b_byte, np.uint8)
+    # image = cv2.cvtColor(np.array(nparr), cv2.COLOR_RGB2BGR)
+    # print(image)
+    # cv2.imwrite("isk.png", image)
+
 
 
