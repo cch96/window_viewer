@@ -3,6 +3,7 @@ import traceback
 import time
 import io
 
+import bitarray
 import pyscreeze
 import lackey
 import numpy
@@ -40,7 +41,13 @@ class Viewer(object):
 
 
 if __name__ == '__main__':
-    a = pyscreeze.screenshot()
-    t1 = time.time()
-    print(list(pyscreeze._locateAll_opencv('img/find.png', a, region=[0, 0, 600, 200])))
-    print(time.time()-t1)
+    for i in range(1000):
+        bit1 = bitarray.bitarray()
+        a = pyscreeze.screenshot(region=[0, 0, 600, 200])
+        bit1.frombytes(a.tobytes())
+        t1 = time.time()
+        bit2 = bitarray.bitarray()
+        b = pyscreeze.screenshot(region=[0, 0, 600, 200])
+        bit2.frombytes(b.tobytes())
+        print((bit1^bit2).count(1))
+        print(time.time()-t1)
