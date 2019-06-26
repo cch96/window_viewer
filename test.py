@@ -1,9 +1,5 @@
 import os
-import win32api, win32con, win32gui, win32ui
 import time
-from win32api import GetSystemMetrics
-import cv2
-import numpy as np
 
 
 def window_capture():
@@ -30,4 +26,4 @@ def window_capture():
     saveBitMap.SaveBitmapFile(saveDC, 'screen.png')
 
 if __name__ == '__main__':
-    window_capture()
+

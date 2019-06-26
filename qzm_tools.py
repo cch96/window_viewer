@@ -78,8 +78,8 @@ class ImgFinder(object):
 
 if __name__ == '__main__':
     t1 = time.time()
-    ImgFinder.window_capture()
-    ac.imread('screen.png')
+
+    showRegionOnScreen
     print(time.time()-t1)
 
 
