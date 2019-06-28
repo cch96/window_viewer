@@ -11,18 +11,51 @@ import cv2
 import pyscreeze
 import settings
 
+VIEWER_FINDED = 0
 VIEWER_STABLE = 0
 DIFF_THRESHOLD = 0.03
-STABLE_WAIT = 0.5
+STABLE_COUNT = 3
 APP_INIT = 0
 APP_BUSY = 1
 APP_FREE = 2
 
-class Windows(object):
-    pass
 
-class BaseApp(object):
-    pass
+class AppManager(object):
+    """
+    这里使用唯一的manager去调用其他viewer方法，因为，pc就只有一台，若是并行,操作可能会更慢
+    所以只由一个manager去控制
+    """
+    def __init__(self):
+        self.app_viewer_dict = {}
+
+    def _change_app_status(self):
+        """改变appview状态， 当状态为busy时忽略操作"""
+        pass
+
+    def accpet(self):
+        """从逻辑处理模块接受消息"""
+        pass
+    def send(self):
+        """给逻辑处理模块发消息 """
+        pass
+    def execute(self):
+        """调用appview执行操作"""
+        pass
+
+    def looking(self):
+        for app, app_viewer in self.app_viewer_dict:
+            if app_viewer.status == APP_FREE:
+                app.send()
+
+    def run(self):
+        """创建appview实例， 监听是否稳定"""
+        for app in app_list:
+            self.app_viewer_dict[app] = app_viewer
+        while True:
+            screen = pyscreeze.screenshot()
+            for app_viewer in self.app_viewer_dict.keys():
+                app_viewer.shot(screen)
+
 
 class AppViewer(object):
 
@@ -31,10 +64,6 @@ class AppViewer(object):
         self.window_area = window_area
         self.status = APP_INIT
         self.window_history = deque(maxlen=3)
-
-    def _get_window(self, screen):
-        app_window = screen.copy(self.window_area)
-        self.window_history.append(app_window)
 
     def _has_changed(self, before_window, now_window):
         before_window_bit = numpy.array(before_window)
@@ -45,23 +74,29 @@ class AppViewer(object):
             return True
         return False
 
-    def _has_stable(self):
+    def shot(self, screen):
+        app_window = screen.crop(self.window_area)
+        self.window_history.append(app_window)
+
+    def isstabled(self):
         """过滤掉切换动画"""
-        window_changed_history = deque(maxlen=3)
         changed = self._has_changed(self.window_history[-1], self.window_history[-2])
-        window_changed_history.append(changed)
+        if not changed:
+            return True
+        return False
 
-
-    def wait_stable(self, screen):
-        self._get_window(screen)
+    def ischanged(self, screen):
         if len(self.window_history) > 1:
             changed = self._has_changed(self.window_history[-1], self.window_history[-2])
             if changed:
                 self.app.send({'status': VIEWER_STABLE})
 
-    def find_pic(self, ):
-
-
+    def find_pic(self, target_pic):
+        last_window = self.window_history[-1]
+        result = list(pyscreeze.locateAll(target_pic, last_window))
+        self.app.send({'status': VIEWER_FINDED, 'data': result})
+        # TODO 这里还是想把self.app.send改为return 由loop去处理发送, 这样在拓展appview的时候会更加的符合习惯
+    # TODO 把我一些有关图像识别的方法
 
 
 class Viewer(object):
@@ -108,6 +143,8 @@ class Viewer(object):
 
 
 if __name__ == '__main__':
+    a = list(pyscreeze.locateAll('img/find.png', 'img/screen.png'))
+    print(a)
     #
     # im = pyscreeze.screenshot()
     # i1 = numpy.array(im)

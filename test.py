@@ -1,5 +1,9 @@
 import os
 import time
+import multiprocessing
+import threading
+import pyscreeze
+import asyncio
 
 
 def window_capture():
@@ -25,5 +29,14 @@ def window_capture():
     saveDC.BitBlt((0, 0), (w, h), mfcDC, (0, 0), win32con.SRCCOPY)
     saveBitMap.SaveBitmapFile(saveDC, 'screen.png')
 
-if __name__ == '__main__':
-
+if __name__ == "__main__":
+    screen = pyscreeze.screenshot()
+    t1 = time.time()
+    print(time.time()-t1)
+    # print(time.time()-t1)
+    # async def aa(a):
+    #     pyscreeze.screenshot()
+    # loop = asyncio.get_event_loop()
+    # t1 = time.time()
+    # loop.run_until_complete(asyncio.wait([aa(1), aa(2), aa(3), aa(4)]))
+    # print(time.time()-t1)
