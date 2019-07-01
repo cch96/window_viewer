@@ -3,9 +3,13 @@ import traceback
 import time
 import asyncio
 import io
+import os
 from collections import deque
+import keyboard
 
 import pyscreeze
+import pywinauto
+from pywinauto import win32_hooks
 import numpy
 import cv2
 import pyscreeze
@@ -101,28 +105,39 @@ class AppViewer(object):
 
 class Viewer(object):
     """"""
-    def __init__(self, project_name, hwnd=0):
+    def __init__(self, project_name):
         self.project_name = project_name
         self.status = 0  # 0表示稳定，1表示变化
-        self.loop_envents = [x() for x in settings.loop_events]
-        self.loop = asyncio.get_event_loop()
-        self.apps = []
+        # self.loop_envents = [x() for x in settings.loop_events]
+        # self.loop = asyncio.get_event_loop()
+        self.app_list = []
 
-    async def accpet(self):
-            pass
+    # async def accpet(self):
+    #         pass
+    #
+    # async def send(self, result):
+    #     pass
+    #
+    # def excute_loop_events(self):
+    #     for loop_event in self.loop_events:
+    #         loop_event.run()
+    #
+    # @classmethod
+    # def execute(task):
+    #     pass
+    #
+    #
+    # def _ischanged(self, screen1, screen2, threshold):
+    #     screen1_bit = numpy.array(screen1)
+    #     screen2_bit = numpy.array(screen1)
+    #     diff = numpy.sum(screen1_bit == screen2_bit)
+    #     diff_rate = diff/screen2_bit.size
+    #     if diff_rate > threshold:
+    #         return True
+    #     elif diff_rate <= threshold:
+    #         return False
 
-    async def send(self, result):
-        pass
-
-    def excute_loop_events(self):
-        for loop_event in self.loop_events:
-            loop_event.run()
-
-    @classmethod
-    def execute(task):
-        pass
-
-    def loop(self):
+    def run(self):
         while True:
             screen = pyscreeze.screenshot()
         # numpy.array(screen)
@@ -131,29 +146,26 @@ class Viewer(object):
         # result = self.execute(data)
         # self.send(sender, data)
 
-    def _ischanged(self, screen1, screen2, threshold):
-        screen1_bit = numpy.array(screen1)
-        screen2_bit = numpy.array(screen1)
-        diff = numpy.sum(screen1_bit == screen2_bit)
-        diff_rate = diff/screen2_bit.size
-        if diff_rate > threshold:
-            return True
-        elif diff_rate <= threshold:
-            return False
+    def set_focus_app(self):
+        app = pywinauto.Application().connect(active_only=True)
+        active_window = app.active()
+        print('您已绑定窗口 %s' % active_window.wrapper_object().element_info)
+        print('请继续')
+        self.app_list.append(app)
+
+    def bind_apps(self):
+        for app in os.listdir('apps'):
+            print('请点击APP:%s需要绑定的窗口后，按ctrl+x' % app)
+            keyboard.wait('ctrl+x')
+            self.set_focus_app()
+
+
+def main():
+    viewer = Viewer('1')
+    viewer.bind_apps()
+    viewer.run()
 
 
 if __name__ == '__main__':
-    a = list(pyscreeze.locateAll('img/find.png', 'img/screen.png'))
-    print(a)
-    #
-    # im = pyscreeze.screenshot()
-    # i1 = numpy.array(im)
-    # time.sleep(1)
-    # t1 = time.time()
-    # im = pyscreeze.screenshot()
-    # i2 = numpy.array(im)
-    # total = numpy.sum(i1 == i2)
-    # t2 = time.time()
-    # print(total/i2.size)
-    # print(t2-t1)
+    main()
 

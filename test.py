@@ -4,6 +4,7 @@ import multiprocessing
 import threading
 import pyscreeze
 import asyncio
+import pywinauto
 
 
 def window_capture():
@@ -30,9 +31,12 @@ def window_capture():
     saveBitMap.SaveBitmapFile(saveDC, 'screen.png')
 
 if __name__ == "__main__":
-    screen = pyscreeze.screenshot()
-    t1 = time.time()
-    print(time.time()-t1)
+    window = pywinauto.Application().connect(title_re='.*window_viewer,*')
+    wrapper = window.top_window()
+    i = wrapper.set_focus()
+    print(i.client_area_rect())
+    time.sleep(1)
+    print(i.client_area_rect())
     # print(time.time()-t1)
     # async def aa(a):
     #     pyscreeze.screenshot()

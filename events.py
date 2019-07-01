@@ -1,10 +1,16 @@
 from abc import ABC, abstractmethod
 
 import pywinauto
+from pywinauto import mouse
 
 import operations
 
+
 class BaseEvent(ABC):
+
+    def __init__(self, app):
+        self.app = app
+
     @abstractmethod
     def prepare(self):
         """事件开始之前的准备"""
@@ -17,23 +23,44 @@ class BaseEvent(ABC):
     def check(self):
         """检测事件是否成功执行"""
 
+    def success(self):
+        pass
+
+    def failure(self):
+        self.doing()
+
     def start(self):
         self.prepare()
-        self.execute()
-        self.check()
+        self.doing()
+        success = self.check()
+        if success:
+            self.success()
+        else:
+            self.failure()
 
 
-class ElementClickEvent(BaseEvent):
+class ElementEvent(BaseEvent):
 
-    def __init__(self, find_img):
+    def __init__(self, app, find_img, success_flag):
+        super().__init__(app)
         self.find_img = find_img
         self.position = None
+        self.success_flag = success_flag
 
     def prepare(self):
-        find = operations.Element(self.find_img)
-        self.position = find.local_one(self.find_img)
+        finder = operations.Element(self.find_img)
+        self.position = finder.local_one(self.app.window)
+
+    def check(self):
+        finder = operations.Element(self.success_flag)
+        isexists = finder.local_one(self.app.window)
+        return isexists
+
+
+class ElementClickEvent(ElementEvent):
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
     def doing(self):
-
-
-
+        mouse.click(self.position)
