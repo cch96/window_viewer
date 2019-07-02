@@ -4,15 +4,19 @@ import time
 import asyncio
 import io
 import os
-from collections import deque
-import keyboard
+from collections import deque, UserDict
+from typing import List, Tuple, Deque, Dict, NewType
 
+import keyboard
 import pyscreeze
 import pywinauto
-from pywinauto import win32_hooks
+from pywinauto.application import Application, WindowSpecification
+from pywinauto.base_wrapper import BaseWrapper
+from pywinauto.win32structures import RECT
+import PIL
 import numpy
-import cv2
 import pyscreeze
+
 import settings
 
 VIEWER_FINDED = 0
@@ -22,6 +26,10 @@ STABLE_COUNT = 3
 APP_INIT = 0
 APP_BUSY = 1
 APP_FREE = 2
+
+
+class NotBindApps(Exception):
+    """没有绑定app"""
 
 
 class AppManager(object):
@@ -63,11 +71,14 @@ class AppManager(object):
 
 class AppViewer(object):
 
-    def __init__(self, app, window_area):
+    def __init__(self, app: Application, active: WindowSpecification,
+                 wrapper: BaseWrapper, rect: RECT):
         self.app = app
-        self.window_area = window_area
+        self.active = active
+        self.wrapper = wrapper
+        self.rect = rect
         self.status = APP_INIT
-        self.window_history = deque(maxlen=3)
+        self.window_history: Deque[PIL.Image.Image]= deque(maxlen=3)
 
     def _has_changed(self, before_window, now_window):
         before_window_bit = numpy.array(before_window)
@@ -77,10 +88,6 @@ class AppViewer(object):
         if diff_rate > DIFF_THRESHOLD:
             return True
         return False
-
-    def shot(self, screen):
-        app_window = screen.crop(self.window_area)
-        self.window_history.append(app_window)
 
     def isstabled(self):
         """过滤掉切换动画"""
@@ -103,18 +110,46 @@ class AppViewer(object):
     # TODO 把我一些有关图像识别的方法
 
 
+
+class AppScriptMap(object):
+    instance = None
+    def __new__(cls, *args, **kwargs):
+        if not cls.instance:
+            cls.instance = super().__new__(cls, *args, **kwargs)
+        return cls.instance
+
+    def __init__(self):
+        self.app_script = {}
+        self.script_app = {}
+
+    def __len__(self):
+        return len(self.app_script)
+
+    def __iter__(self):
+        for key, value in self.app_script:
+            yield (key, value)
+
+    def app_to_script(self, app: AppViewer):
+        return self.app_script[app]
+
+    def script_to_app(self, script: str):
+        return self.script_app[script]
+
+    def save(self, app: AppViewer, script_name: str):
+        self.app_script[app] = script_name
+        self.script_app[script_name] = app
+
+
 class Viewer(object):
-    """"""
+
     def __init__(self, project_name):
         self.project_name = project_name
-        self.status = 0  # 0表示稳定，1表示变化
-        # self.loop_envents = [x() for x in settings.loop_events]
-        # self.loop = asyncio.get_event_loop()
-        self.app_list = []
+        self.app_script_map: AppScriptMap = AppScriptMap()
+        self.appview_list: List[AppViewer] = []
 
-    # async def accpet(self):
-    #         pass
-    #
+    def accept(self):
+
+
     # async def send(self, result):
     #     pass
     #
@@ -137,27 +172,33 @@ class Viewer(object):
     #     elif diff_rate <= threshold:
     #         return False
 
-    def run(self):
-        while True:
-            screen = pyscreeze.screenshot()
-        # numpy.array(screen)
-        # self.excute_loop_events()
-        # sender, data = self.loop.run_until_complete(asyncio.wait(self.accpet()))
-        # result = self.execute(data)
-        # self.send(sender, data)
-
-    def set_focus_app(self):
-        app = pywinauto.Application().connect(active_only=True)
+    def _get_focus_app(self):
+        app = Application().connect(active_only=True)
         active_window = app.active()
-        print('您已绑定窗口 %s' % active_window.wrapper_object().element_info)
-        print('请继续')
-        self.app_list.append(app)
+        wrapper = active_window.wrapper_object()
+        app_view = AppViewer(app=app, active=active_window,
+                             wrapper=wrapper, rect=wrapper.rectangle())
+        return app_view
 
     def bind_apps(self):
-        for app in os.listdir('apps'):
-            print('请点击APP:%s需要绑定的窗口后，按ctrl+x' % app)
+        for script in os.listdir('script'):
+            print('请点击SCRIPT:%s需要绑定的窗口后，按ctrl+x' % script)
             keyboard.wait('ctrl+x')
-            self.set_focus_app()
+            app_view = self._get_focus_app()
+            self.app_script_map.save(app=app_view, script_name=script)
+            self.appview_list.append(app_view)
+            print('您已绑定窗口 %s' % app_view.wrapper.element_info)
+            print('请继续')
+
+    def run(self):
+        if self.appview_list == []:
+            raise NotBindApps("您还没有绑定app")
+        while True:
+            screen = pyscreeze.screenshot()
+            for app_view in self.appview_list:
+                rect = app_view.rect
+                app_shot = screen.crop((rect.left, rect.top, rect.right, rect.bottom))
+                app_view.window_history.append(app_shot)
 
 
 def main():
