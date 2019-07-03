@@ -29,15 +29,6 @@ class BaseEvent(ABC):
     def failure(self):
         self.doing()
 
-    def start(self):
-        self.prepare()
-        self.doing()
-        success = self.check()
-        if success:
-            self.success()
-        else:
-            self.failure()
-
 
 class ElementEvent(BaseEvent):
 

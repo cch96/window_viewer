@@ -148,7 +148,7 @@ class Viewer(object):
         self.appview_list: List[AppViewer] = []
 
     def accept(self):
-
+        pass
 
     # async def send(self, result):
     #     pass

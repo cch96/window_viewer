@@ -1,16 +1,34 @@
 import os
 import time
+from multiprocessing import Process, Pipe
+from threading import Thread
 from typing import Dict, List
 
-class aa():
-    instance = None
-    def __new__(cls, *args, **kwargs):
-        if not cls.instance:
-            cls.instance = super().__new__(cls, *args, **kwargs)
-        return cls.instance
+def aa(conn1):
+    conn1.send('123')
+
+def bb(conn2):
+    print(conn2.recv())
+
+
+def cc():
+    for i in range(3):
+        yield
+        print(i)
+
 
 if __name__ == "__main__":
-    print(aa(), aa())
+    a = cc()
+    a.send(None)
+    next(a)
+    next(a)
+    # p2 = Process(target=bb, args=(conn2, ))
+    # t1 = time.time()
+    # p1.start()
+    # p2.start()
+    # p1.join()
+    # p2.join()
+    # print(time.time()-t1)
     # wrapper = window.active()
     # a = wrapper.capture_as_image()
     # a.show()
