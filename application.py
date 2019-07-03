@@ -2,9 +2,6 @@ from typing import Tuple, Generator
 from events import BaseEvent
 
 
-class EventExecutor(object):
-    pass
-
 class AppExecutor(object):
     """app执行器，封装用于执行的app代码"""
 

@@ -1,6 +1,7 @@
 import cv2
 import pyscreeze
 import numpy as np
+from application import AppExecutor
 
 
 class FindImgError(Exception):
@@ -11,6 +12,13 @@ class OpenImgError(Exception):
 
 class WaitTimeOutError(Exception):
     """等待元素超时"""
+
+
+def async_operation():
+
+    def wrapper(opeartion):
+        opeartion()
+        AppExecutor.
 
 
 class Element(object):
@@ -51,6 +59,7 @@ class Element(object):
         sorted_result = sorted(all_element, key=lambda x: x[dirction])
         return sorted_result[index]
 
+    @async_operation
     def wait_get(self, source_img, dirction=1, index=0, attempts=999999, fun=None, f_kwargs=None):
         """等待识别的元素出现, 并返回坐标
 
@@ -73,6 +82,7 @@ class Element(object):
         else:
             raise WaitTimeOutError('等待 %s 失败 ' % self.name)
 
+    @async_operation
     def wait_disapper(self, source_img, attempts=999999, fun=None, f_kwargs=None):
         """等待，直到目标元素消失
 
@@ -93,6 +103,7 @@ class Element(object):
         else:
             raise WaitTimeOutError('等待 %s 失败' % self.name)
 
+    @async_operation
     def wait_move(self, before_position, source_img, attempts=999999):
         """等待, 直到元素出现移动
 
