@@ -1,6 +1,10 @@
 import cv2
 import pyscreeze
 import numpy as np
+
+import asyncio
+from asyncio.coroutines import coroutine
+
 from application import AppExecutor
 
 
@@ -13,13 +17,16 @@ class OpenImgError(Exception):
 class WaitTimeOutError(Exception):
     """等待元素超时"""
 
+class NotAsyncError(Exception):
+    """不是异步操作"""
 
-def async_operation():
 
-    def wrapper(opeartion):
+def async_operation(opeartion):
+    def async_opeartion():
         opeartion()
-        AppExecutor.
-
+        await asyncio.sleep(0)
+    asyncio.coroutine(async_operation)
+    return
 
 class Element(object):
 

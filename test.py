@@ -7,21 +7,12 @@ from typing import Dict, List
 def aa(conn1):
     conn1.send('123')
 
-def bb(conn2):
-    print(conn2.recv())
-
-
-def cc():
-    for i in range(3):
-        yield
-        print(i)
+async def bb():
+    pass
 
 
 if __name__ == "__main__":
-    a = cc()
-    a.send(None)
-    next(a)
-    next(a)
+    print(type(bb()))
     # p2 = Process(target=bb, args=(conn2, ))
     # t1 = time.time()
     # p1.start()
